@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>栄養計算アプリ</title>
+</head>
+<body>
+    <h1>栄養計算アプリ</h1>
+    <form id="nutritionForm">
+        <label>年齢:</label>
+        <input type="number" name="age" required><br>
+        <label>身長 (cm):</label>
+        <input type="number" name="height" step="0.1" required><br>
+        <label>体重 (kg):</label>
+        <input type="number" name="weight" step="0.1" required><br>
+        <label>性別:</label>
+        <select name="sex" required>
+            <option value="male">男性</option>
+            <option value="female">女性</option>
+        </select><br>
+        <label>ご飯の量 (g):</label>
+        <input type="number" name="rice" step="0.1" required><br>
+        <label>お肉の量 (g):</label>
+        <input type="number" name="meat" step="0.1" required><br>
+        <button type="submit">計算する</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById("nutritionForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            fetch("/calculate", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById("result");
+                if (data.error) {
+                    resultDiv.innerHTML = `<p>エラー: ${data.error}</p>`;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p>BMI: ${data.BMI}</p>
+                        <p>理想体重: ${data.ideal_weight} kg</p>
+                        <p>理想の炭水化物: ${data.ideal_carbs} g</p>
+                        <p>理想のタンパク質: ${data.ideal_protein} g</p>
+                        <p>不足している炭水化物: ${data.carb_deficit} g</p>
+                        <p>不足しているタンパク質: ${data.protein_deficit} g</p>
+                        <p>提案される食事: ${data.suggestions.join(", ")}</p>
+                    `;
+                }
+            })
+            .catch(error => {
+                document.getElementById("result").innerHTML = `<p>通信エラー: ${error}</p>`;
+            });
+        });
+    </script>
+</body>
+</html>
